@@ -276,7 +276,7 @@ export default function CDNManager() {
     }
   }
 
-  const handleUpdateSetting = async (id: string, field: keyof CdnSetting, value: any) => {
+  const handleUpdateSetting = async (id: string, field: keyof CdnSetting, value: string | boolean) => {
     setIsLoading(true)
     try {
       // Simulate API call

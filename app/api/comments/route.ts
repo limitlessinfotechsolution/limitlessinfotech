@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { auth } from '@/lib/auth';
+import { auth } from '@/lib/nextauth';
 import { z } from 'zod';
 
 const commentSchema = z.object({
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
       .insert([
         {
           project_id,
-          author_id: (session.user as any).id,
+          author_id: session.user?.id,
           content,
           type,
           rating,
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
     return NextResponse.json(newComment, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 });
+      return NextResponse.json({ error: error.issues }, { status: 400 });
     }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

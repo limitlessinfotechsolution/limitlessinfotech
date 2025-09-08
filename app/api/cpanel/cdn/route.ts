@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { action, id, domain, origin, cacheLevel, sslEnabled } = body
+    const { action, id, domain, origin, cacheLevel, sslEnabled, status } = body
 
     if (!action) {
       return NextResponse.json({ error: "Action is required" }, { status: 400 })
@@ -214,7 +214,9 @@ export async function POST(request: NextRequest) {
 
       if (cacheLevel) mockCdnSettings[settingIndex].cacheLevel = cacheLevel
       if (typeof sslEnabled === "boolean") mockCdnSettings[settingIndex].sslEnabled = sslEnabled
-      if (status) mockCdnSettings[settingIndex].status = status
+      if (status && ["active", "inactive", "deploying"].includes(status)) {
+        mockCdnSettings[settingIndex].status = status as "active" | "inactive" | "deploying"
+      }
 
       return NextResponse.json({
         success: true,

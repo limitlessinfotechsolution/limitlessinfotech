@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { auth } from '@/lib/auth';
+import { auth } from '@/lib/nextauth';
 import { z } from 'zod';
 import { logError } from '@/lib/logger';
 
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
           requester,
           details,
           status: 'pending',
-          requester_id: (session.user as any).id,
+          requester_id: session.user?.id,
         },
       ])
       .select()
@@ -105,7 +105,7 @@ export async function PUT(request: Request) {
 
     const { data: updatedApprovalRequest, error } = await supabase
       .from('approval_requests')
-      .update({ status, approver_id: (session.user as any).id })
+      .update({ status, approver_id: session.user?.id })
       .eq('id', id)
       .select()
       .single();

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -29,7 +29,7 @@ interface SystemMetric {
   value: string
   change: string
   trend: "up" | "down" | "stable"
-  icon: any
+  icon: React.ComponentType<{ className?: string }>
 }
 
 interface User {

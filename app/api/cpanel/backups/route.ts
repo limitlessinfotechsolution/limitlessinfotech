@@ -134,6 +134,7 @@ export async function POST(request: NextRequest) {
       downloadUrl: null,
       description: description || `Manual ${type} backup`,
       progress: 0,
+      error: "Backup in progress", // Add error property for in_progress status
     }
 
     mockBackups.unshift(newBackup)
@@ -142,12 +143,18 @@ export async function POST(request: NextRequest) {
     setTimeout(() => {
       const backupIndex = mockBackups.findIndex((b) => b.id === newBackup.id)
       if (backupIndex !== -1) {
-        mockBackups[backupIndex] = {
-          ...mockBackups[backupIndex],
-          status: "completed",
+        // Create completed backup object without error property
+        const completedBackup = {
+          id: mockBackups[backupIndex].id,
+          name: mockBackups[backupIndex].name,
+          type: mockBackups[backupIndex].type,
           size: type === "full" ? "2.5 GB" : type === "database" ? "180 MB" : "1.9 GB",
+          created: mockBackups[backupIndex].created,
+          status: "completed" as const,
           downloadUrl: `/api/cpanel/backups/download/${newBackup.id}`,
+          description: mockBackups[backupIndex].description,
         }
+        mockBackups[backupIndex] = completedBackup
       }
     }, 5000) // Simulate 5 second backup process
 

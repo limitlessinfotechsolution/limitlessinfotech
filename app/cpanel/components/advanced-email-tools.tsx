@@ -95,12 +95,13 @@ export default function AdvancedEmailTools() {
   }
 
   const handleFilterSelectChange = (value: string, field: "status" | "action") => {
-    setNewFilter((prev) => ({ ...prev, [field]: value }))
+    setNewFilter((prev) => ({
+      ...prev,
+      [field]: field === "status" ? (value as EmailFilter["status"]) : value
+    }))
   }
 
-  const handleAutoResponderSelectChange = (value: string, field: "status") => {
-    setNewAutoResponder((prev) => ({ ...prev, [field]: value }))
-  }
+
 
   const addEmailFilter = async () => {
     if (!newFilter.name || !newFilter.condition || !newFilter.action) {

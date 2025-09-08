@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
-import { Shield, Lock, Scan, AlertTriangle, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Shield, Lock, Scan, CheckCircle, XCircle, Loader2, Plus, Trash2 } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
 
@@ -125,9 +126,10 @@ export default function SecurityCenter() {
             : setting,
         ),
       )
-      toast({ title: "Success!", description: `Setting updated.` })
+      toast({ id: `setting-${id}`, title: "Success!", description: `Setting updated.` })
     } catch (error) {
       toast({
+        id: `setting-error-${id}`,
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to update setting.",
         variant: "destructive",
@@ -142,16 +144,17 @@ export default function SecurityCenter() {
     setSecuritySettings((prev) =>
       prev.map((setting) => (setting.id === "sec_4" ? { ...setting, status: "scanning" } : setting)),
     )
-    toast({ title: "Scanning...", description: "Malware scan initiated. This may take a few minutes." })
+    toast({ id: "malware-scan-start", title: "Scanning...", description: "Malware scan initiated. This may take a few minutes." })
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 5000)) // Simulate scan time
       setSecuritySettings((prev) =>
         prev.map((setting) => (setting.id === "sec_4" ? { ...setting, status: "active", enabled: true } : setting)),
       )
-      toast({ title: "Scan Complete!", description: "No threats found. Your website is clean." })
+      toast({ id: "malware-scan-complete", title: "Scan Complete!", description: "No threats found. Your website is clean." })
     } catch (error) {
       toast({
+        id: "malware-scan-error",
         title: "Error",
         description: error instanceof Error ? error.message : "Malware scan failed.",
         variant: "destructive",
@@ -167,12 +170,15 @@ export default function SecurityCenter() {
   }
 
   const handleFirewallSelectChange = (value: string, field: "type" | "protocol") => {
-    setNewFirewallRule((prev) => ({ ...prev, [field]: value as any }))
+    setNewFirewallRule((prev) => ({
+      ...prev,
+      [field]: field === "type" ? (value as FirewallRule["type"]) : (value as FirewallRule["protocol"])
+    }))
   }
 
   const addFirewallRule = async () => {
     if (!newFirewallRule.port || !newFirewallRule.source) {
-      toast({ title: "Error", description: "Port and Source are required for firewall rule.", variant: "destructive" })
+      toast({ id: "firewall-rule-validation", title: "Error", description: "Port and Source are required for firewall rule.", variant: "destructive" })
       return
     }
     setIsLoading(true)
@@ -185,9 +191,10 @@ export default function SecurityCenter() {
       }
       setFirewallRules((prev) => [...prev, newRule])
       setNewFirewallRule({ type: "allow", protocol: "TCP", port: "", source: "", destination: "Any" })
-      toast({ title: "Success!", description: "Firewall rule added." })
+      toast({ id: "firewall-rule-added", title: "Success!", description: "Firewall rule added." })
     } catch (error) {
       toast({
+        id: "firewall-rule-add-error",
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to add firewall rule.",
         variant: "destructive",
@@ -205,9 +212,10 @@ export default function SecurityCenter() {
       setFirewallRules((prev) =>
         prev.map((rule) => (rule.id === id ? { ...rule, status: newStatus as "active" | "inactive" } : rule)),
       )
-      toast({ title: "Success!", description: `Firewall rule status changed to ${newStatus}.` })
+      toast({ id: `firewall-rule-status-${id}`, title: "Success!", description: `Firewall rule status changed to ${newStatus}.` })
     } catch (error) {
       toast({
+        id: `firewall-rule-status-error-${id}`,
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to update firewall rule status.",
         variant: "destructive",
@@ -223,9 +231,10 @@ export default function SecurityCenter() {
     try {
       // Simulate API call
       setFirewallRules((prev) => prev.filter((rule) => rule.id !== id))
-      toast({ title: "Success!", description: "Firewall rule deleted." })
+      toast({ id: `firewall-rule-deleted-${id}`, title: "Success!", description: "Firewall rule deleted." })
     } catch (error) {
       toast({
+        id: `firewall-rule-delete-error-${id}`,
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to delete firewall rule.",
         variant: "destructive",

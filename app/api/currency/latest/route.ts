@@ -27,7 +27,7 @@ export async function GET() {
         "Cache-Control": `public, max-age=${TEN_MINUTES}`,
       },
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: "Currency service unreachable" }, { status: 500 })
   }
 }

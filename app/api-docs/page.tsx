@@ -273,7 +273,7 @@ export default function APIDocsPage() {
                     <h4 className="font-semibold text-foreground mb-3">Response</h4>
                     <div className="relative">
                       <pre className="bg-muted/20 p-4 rounded-lg border border-border overflow-x-auto">
-                        <code className="text-sm text-foreground">{endpoint.response}</code>
+              <code className="text-sm text-foreground">{endpoint.response.replace(/"/g, '"')}</code>
                       </pre>
                       <Button
                         size="sm"
@@ -294,7 +294,7 @@ export default function APIDocsPage() {
                     <h4 className="font-semibold text-foreground mb-3">Example Request</h4>
                     <div className="relative">
                       <pre className="bg-muted/20 p-4 rounded-lg border border-border overflow-x-auto">
-                        <code className="text-sm text-foreground">{endpoint.example}</code>
+                      <code className="text-sm text-foreground">{endpoint.example.replace(/"/g, '"')}</code>
                       </pre>
                       <Button
                         size="sm"
@@ -407,7 +407,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`,
                 <div className="p-4 bg-accent-orange/10 rounded-lg border border-accent-orange/20">
                   <h4 className="font-semibold text-accent-orange mb-2">Important Notes</h4>
                   <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Tokens expire after 7 days by default</li>
+                  <li>• Tokens expire after 7 days by default</li>
                     <li>• Always use HTTPS in production</li>
                     <li>• Store tokens securely (never in localStorage for sensitive apps)</li>
                     <li>• Include the "Bearer " prefix in the Authorization header</li>
@@ -760,3 +760,4 @@ print(result)`,
       </div>
     </div>
   )
+}

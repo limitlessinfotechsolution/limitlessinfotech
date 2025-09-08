@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { auth } from '@/lib/auth';
+import { auth } from '@/lib/nextauth';
 import { z } from 'zod';
 
 const taskSchema = z.object({
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
           title,
           description,
           assigned_to,
-          assigned_by: (session.user as any).id,
+          assigned_by: session.user?.id,
           priority,
           due_date,
           tags,
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
     return NextResponse.json(newTask, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 });
+      return NextResponse.json({ error: error.issues }, { status: 400 });
     }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

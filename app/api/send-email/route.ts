@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { auth } from '@/lib/auth';
+import { auth } from '@/lib/nextauth';
 import { z } from 'zod';
-import fs from 'fs/promises';
+import fs from 'fs';
 import path from 'path';
 import { logError } from '@/lib/logger';
 
@@ -17,7 +17,7 @@ const sendEmailSchema = z.object({
 
 async function getEmailHtml(templateName: string, data: Record<string, string>): Promise<string> {
   const templatePath = path.join(process.cwd(), 'emails', `${templateName}.html`);
-  let html = await fs.readFile(templatePath, 'utf-8');
+  let html = fs.readFileSync(templatePath, 'utf-8');
   for (const key in data) {
     html = html.replace(new RegExp(`{{${key}}}`, 'g'), data[key]);
   }
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { to, subject, template, data } = sendEmailSchema.parse(body);
 
-    const html = await getEmailHtml(template, data);
+    const html = await getEmailHtml(template, data as Record<string, string>);
 
     if (!process.env.RESEND_API_KEY) {
       console.warn("RESEND_API_KEY is not set. Skipping actual email sending.");
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
   } catch (error) {
     await logError(error);
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.errors }, { status: 400 });
+      return NextResponse.json({ error: error.issues }, { status: 400 });
     }
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }

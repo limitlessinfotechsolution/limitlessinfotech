@@ -25,15 +25,15 @@ export async function POST(req: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await createUser(email, hashedPassword);
+    await createUser(email, hashedPassword);
 
     return NextResponse.json({ message: 'User created successfully' }, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     await logError(error);
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.issues }, { status: 400 });
     }
-    if (error.code === '23505') {
+    if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
       return NextResponse.json({ error: 'User already exists' }, { status: 409 });
     }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

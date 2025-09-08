@@ -7,7 +7,7 @@ import { z } from "zod"
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig)
 
 /* ------------------------------------------------------------------ */
-/*  JWT-based helper – kept for legacy modules that expect AuthService */
+/*  JWT-based AuthService for API routes */
 /* ------------------------------------------------------------------ */
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET ?? "change-me")
@@ -36,6 +36,16 @@ export class AuthService {
       .setIssuedAt(iat)
       .setExpirationTime(exp)
       .sign(JWT_SECRET)
+  }
+
+  /** Generate token - alias for sign method for backward compatibility */
+  static async generateToken(user: { id: string; email: string; role: string }): Promise<string> {
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role as "admin" | "employee" | "client"
+    }
+    return await this.sign(payload)
   }
 
   /** Verify token & return payload or `null` if invalid/expired. */

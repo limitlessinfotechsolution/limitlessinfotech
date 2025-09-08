@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
-import { auth } from '@/lib/auth';
+import { auth } from '@/lib/nextauth';
 import { supabase } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
 import { fileTypeFromBuffer } from 'file-type';
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
       .insert([
         {
           id: uuidv4(),
-          user_id: (session.user as any).id,
+          user_id: session.user?.id,
           file_name: file.name,
           file_type: type.mime,
           file_size: file.size,

@@ -1,59 +1,200 @@
 version: '3.8'
 
 services:
-  limitless-webapp:
+  # Main Next.js application
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000" # Map container port 3000 to host port 3000
+      target: production
+    container_name: limitless-app
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_APP_URL=http://localhost:3000 # Or your production URL
+      - NEXT_PUBLIC_APP_URL=https://limitlessinfotech.com
+      - NEXTAUTH_URL=https://limitlessinfotech.com
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
-      - JWT_SECRET=${JWT_SECRET} # Example: for authentication
-      - RESEND_API_KEY=${RESEND_API_KEY} # Example: for email sending
-      - BLOB_READ_WRITE_TOKEN=${BLOB_READ_WRITE_TOKEN} # Example: for Vercel Blob uploads
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - DATABASE_URL=${DATABASE_URL}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - BLOB_READ_WRITE_TOKEN=${BLOB_READ_WRITE_TOKEN}
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - UPSTASH_REDIS_REST_URL=${UPSTASH_REDIS_REST_URL}
+      - UPSTASH_REDIS_REST_TOKEN=${UPSTASH_REDIS_REST_TOKEN}
+      - NEXT_PUBLIC_GA_TRACKING_ID=${NEXT_PUBLIC_GA_TRACKING_ID}
+      - NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN}
+      - SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
+      - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
     volumes:
-      - ./public:/app/public:ro # Read-only mount for static assets
-    restart: unless-stopped # Always restart unless explicitly stopped
+      - ./public:/app/public:ro
+      - ./.next:/app/.next:ro
+    networks:
+      - limitless-network
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
+  # PostgreSQL database
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
+    container_name: limitless-postgres
     environment:
       - POSTGRES_DB=limitless_db
       - POSTGRES_USER=limitless_user
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./scripts/database-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
-      - ./scripts/seed-data.sql:/docker-entrypoint-initdb.d/02-seed.sql
-    ports:
-      - "5432:5432"
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./scripts/schema.sql:/docker-entrypoint-initdb.d/02-schema.sql:ro
+      - ./scripts/seed.sql:/docker-entrypoint-initdb.d/03-seed.sql:ro
+    networks:
+      - limitless-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U limitless_user -d limitless_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: >
+      postgres
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
 
+  # Redis for caching and sessions
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    container_name: limitless-redis
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
     volumes:
       - redis_data:/data
+    networks:
+      - limitless-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
+  # Nginx reverse proxy and load balancer
   nginx:
-    image: nginx:alpine
+    image: nginx:1.25-alpine
+    container_name: limitless-nginx
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./deployment/nginx-production.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
-      - ./public:/var/www/limitless-webapp/public:ro
-      - ./.next/static:/var/www/limitless-webapp/.next/static:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/ssl/certs:ro
+      - ./public:/usr/share/nginx/html:ro
+      - ./.next/static:/usr/share/nginx/html/_next/static:ro
+    networks:
+      - limitless-network
     depends_on:
-      - limitless-webapp # Ensure Next.js app starts before Nginx
+      - app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Monitoring with Prometheus (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: limitless-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - limitless-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+
+  # Grafana for dashboards (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: limitless-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - limitless-network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # Log aggregation with Loki (optional)
+  loki:
+    image: grafana/loki:latest
+    container_name: limitless-loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    networks:
+      - limitless-network
+    command: -config.file=/etc/loki/local-config.yaml
+    restart: unless-stopped
+
+  # Log shipping with Promtail (optional)
+  promtail:
+    image: grafana/promtail:latest
+    container_name: limitless-promtail
+    volumes:
+      - ./monitoring/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/log/nginx:/var/log/nginx:ro
+    networks:
+      - limitless-network
+    command: -config.file=/etc/promtail/config.yml
     restart: unless-stopped
 
 volumes:
   postgres_data:
+    driver: local
   redis_data:
-  node_modules: # Example volume for node_modules cache
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  loki_data:
+    driver: local
+
+networks:
+  limitless-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
