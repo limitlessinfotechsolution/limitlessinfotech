@@ -37,7 +37,7 @@ const apiEndpoints: APIEndpoint[] = [
   "lastName": "Doe",
   "email": "john@example.com",
   "subject": "Project Inquiry",
-  "message": "I'm interested in your web development services."
+  "message": "I&apos;m interested in your web development services."
 }`,
   },
   {
@@ -273,7 +273,8 @@ export default function APIDocsPage() {
                     <h4 className="font-semibold text-foreground mb-3">Response</h4>
                     <div className="relative">
                       <pre className="bg-muted/20 p-4 rounded-lg border border-border overflow-x-auto">
-              <code className="text-sm text-foreground">{endpoint.response.replace(/"/g, '"')}</code>
+                        {/* eslint-disable-next-line react/no-unescaped-entities */}
+                        <code className="text-sm text-foreground">{endpoint.response.replace(/"/g, '"')}</code>
                       </pre>
                       <Button
                         size="sm"
@@ -294,7 +295,8 @@ export default function APIDocsPage() {
                     <h4 className="font-semibold text-foreground mb-3">Example Request</h4>
                     <div className="relative">
                       <pre className="bg-muted/20 p-4 rounded-lg border border-border overflow-x-auto">
-                      <code className="text-sm text-foreground">{endpoint.example.replace(/"/g, '"')}</code>
+                        {/* eslint-disable-next-line react/no-unescaped-entities */}
+                        <code className="text-sm text-foreground">{endpoint.example.replace(/"/g, '"')}</code>
                       </pre>
                       <Button
                         size="sm"
@@ -427,7 +429,10 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`,
                   <h4 className="font-semibold text-foreground mb-3">Contact Form Submission</h4>
                   <div className="relative">
                     <pre className="bg-muted/20 p-4 rounded-lg border border-border overflow-x-auto">
-                      <code className="text-sm text-foreground">{`async function submitContactForm(formData) {
+                      <code
+                        className="text-sm text-foreground"
+                        dangerouslySetInnerHTML={{
+                          __html: `async function submitContactForm(formData) {
   try {
     const response = await fetch('/api/contact', {
       method: 'POST',
@@ -449,7 +454,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`,
     console.error('Error submitting form:', error);
     throw error;
   }
-}`}</code>
+}`.replace(/"/g, '"').replace(/'/g, '&apos;')
+                        }}
+                      />
                     </pre>
                     <Button
                       size="sm"
@@ -497,7 +504,10 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`,
                   <h4 className="font-semibold text-foreground mb-3">Authenticated File Operations</h4>
                   <div className="relative">
                     <pre className="bg-muted/20 p-4 rounded-lg border border-border overflow-x-auto">
-                      <code className="text-sm text-foreground">{`class LimitlessAPI {
+                      <code
+                        className="text-sm text-foreground"
+                        dangerouslySetInnerHTML={{
+                          __html: `class LimitlessAPI {
   constructor(token) {
     this.token = token;
     this.baseURL = '/api';
@@ -539,7 +549,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`,
 // Usage
 const api = new LimitlessAPI('your-jwt-token');
 const files = await api.getFiles('/public_html');
-console.log(files);`}</code>
+console.log(files);`.replace(/"/g, '"').replace(/'/g, '&apos;')
+                        }}
+                      />
                     </pre>
                     <Button
                       size="sm"
@@ -612,7 +624,10 @@ console.log(files);`,
               <CardContent>
                 <div className="relative">
                   <pre className="bg-muted/20 p-4 rounded-lg border border-border overflow-x-auto">
-                    <code className="text-sm text-foreground">{`import requests
+                    <code
+                      className="text-sm text-foreground"
+                      dangerouslySetInnerHTML={{
+                        __html: `import requests
 import json
 
 class LimitlessAPI:
@@ -658,11 +673,13 @@ contact_data = {
     "lastName": "Doe",
     "email": "john@example.com",
     "subject": "API Inquiry",
-    "message": "I'm interested in your API services."
+    "message": "I&apos;m interested in your API services."
 }
 result = api.submit_contact_form(contact_data)
-print(result)`}</code>
-                  </pre>
+print(result)`.replace(/"/g, '"').replace(/'/g, '&apos;')
+                      }}
+                    />
+                    </pre>
                   <Button
                     size="sm"
                     variant="ghost"

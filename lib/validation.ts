@@ -37,7 +37,7 @@ export function validatePassword(password: string | null | undefined): boolean {
     return false
   }
   // Example: At least 8 characters, one uppercase, one lowercase, one number, one special character
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+])[A-Za-z\d!@#$%^&*()_+]{8,}$/
+  const _passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+])[A-Za-z\d!@#$%^&*()_+]{8,}$/
   // For this mock, we'll just check minimum length
   return password.length >= 8
 }
@@ -74,7 +74,7 @@ export function validateUrl(url: string | null | undefined): boolean {
   try {
     new URL(url)
     return true
-  } catch (e) {
+  } catch {
     return false
   }
 }

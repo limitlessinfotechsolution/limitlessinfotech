@@ -47,7 +47,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
               <CardTitle className="text-2xl font-bold">Something went wrong!</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-lg">We're sorry, but an unexpected error occurred. Please try refreshing the page.</p>
+              <p className="text-lg">We&apos;re sorry, but an unexpected error occurred. Please try refreshing the page.</p>
               {this.state.error && (
                 <div className="rounded-md bg-destructive/20 p-3 text-sm font-mono text-destructive-foreground">
                   <p className="font-semibold">Error Message:</p>

@@ -11,7 +11,7 @@ interface RateLimitOptions {
   uniqueTokens: number // max requests per interval
 }
 
-interface RateLimiter {
+interface RateLimitChecker {
   check: (token: string) => Promise<boolean>
 }
 
@@ -76,7 +76,7 @@ class RateLimiter {
  * @param options.uniqueTokens - The maximum number of requests allowed within the interval for a unique token (e.g., IP address).
  * @returns A rate limiter object with a `check` method.
  */
-export function rateLimit(options: RateLimitOptions): RateLimiter {
+export function rateLimit(options: RateLimitOptions): RateLimitChecker {
   const { interval, uniqueTokens } = options
 
   const cache = new LRUCache<string, number[]>({
@@ -110,7 +110,7 @@ export const rateLimiter = new RateLimiter()
 
 export function createRateLimitMiddleware(config: RateLimitConfig) {
   return (request: NextRequest, identifier?: string) => {
-    const id = identifier || request.ip || "anonymous"
+    const id = identifier || request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || "anonymous"
     return rateLimiter.isAllowed(id, config)
   }
 }

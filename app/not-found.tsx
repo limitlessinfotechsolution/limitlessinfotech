@@ -12,7 +12,7 @@ export default function NotFoundPage() {
           <CardTitle className="text-4xl font-bold">404</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <p className="text-lg text-gray-300">Oops! The page you're looking for doesn't exist.</p>
+          <p className="text-lg text-gray-300">Oops! The page you&apos;re looking for doesn&apos;t exist.</p>
           <p className="text-md text-gray-400">
             It might have been moved, deleted, or you might have typed the address incorrectly.
           </p>

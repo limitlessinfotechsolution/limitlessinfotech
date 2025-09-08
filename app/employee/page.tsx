@@ -78,6 +78,16 @@ interface EmployeeSession {
   avatar: string
 }
 
+interface APIUser {
+  id: string
+  employee_code: string
+  name: string
+  email: string
+  department: string
+  role: string
+  avatar?: string
+}
+
 // Mock data for employees (these would ideally come from your DB)
 const mockEmployees: Employee[] = [
   {
@@ -177,7 +187,7 @@ export default function EmployeePage() {
         if (res.ok) {
           const data = await res.json()
           setEmployees(
-            data.map((user: any) => ({
+            data.map((user: APIUser) => ({
               id: user.id,
               employee_code: user.employee_code,
               name: user.name,
@@ -191,6 +201,7 @@ export default function EmployeePage() {
           )
         } else {
           toast({
+            id: "fetch-employees-error",
             title: "Error",
             description: "Failed to fetch employee list.",
             variant: "destructive",
@@ -954,7 +965,7 @@ export default function EmployeePage() {
                   </select>
                   <select
                     value={newTaskForm.priority}
-                    onChange={(e) => setNewTaskForm((prev) => ({ ...prev, priority: e.target.value as any }))}
+                    onChange={(e) => setNewTaskForm((prev) => ({ ...prev, priority: e.target.value as "low" | "medium" | "high" | "urgent" }))}
                     className="px-3 py-2 bg-white/5 border border-white/10 rounded-md focus:border-blue-500/50 focus:outline-none text-white"
                   >
                     <option value="low" className="bg-slate-800">
@@ -1333,7 +1344,7 @@ export default function EmployeePage() {
                         <span className="text-xs text-gray-500">2 minutes ago</span>
                       </div>
                       <p className="text-sm text-gray-300">
-                        Hey team! I've uploaded the latest design mockups. Please review and let me know your thoughts.
+                        Hey team! I&apos;ve uploaded the latest design mockups. Please review and let me know your thoughts.
                       </p>
                       <div className="flex items-center space-x-2 mt-2">
                         <Button size="sm" variant="ghost" className="hover:bg-white/10">

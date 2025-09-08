@@ -713,7 +713,7 @@ export default function ApprovalWorkflow() {
                     <div className="flex items-center space-x-2">
                       <select
                         value={commentType}
-                        onChange={(e) => setCommentType(e.target.value as any)}
+                        onChange={(e) => setCommentType(e.target.value as "comment" | "approval" | "rejection" | "change-request")}
                         className="input-field text-sm"
                       >
                         <option value="comment" className="bg-dark-blue-800">

@@ -1,7 +1,6 @@
 import Credentials from "next-auth/providers/credentials"
 import { getUserByEmail } from "./database"
 import bcrypt from "bcryptjs"
-import { User } from "./database"
 
 const authConfig = {
   providers: [
@@ -11,19 +10,21 @@ const authConfig = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) {
+      async authorize(credentials: unknown) {
+        if (!credentials || typeof credentials !== 'object' || !('email' in credentials) || !('password' in credentials)) {
           return null
         }
 
-        const user = await getUserByEmail(credentials.email as string);
+        const creds = credentials as { email: string; password: string }
+
+        const user = await getUserByEmail(creds.email);
 
         if (!user) {
           return null
         }
 
         const isPasswordCorrect = await bcrypt.compare(
-          credentials.password as string,
+          creds.password,
           user.passwordHash
         );
 
@@ -47,17 +48,21 @@ const authConfig = {
   },
 
   callbacks: {
-    async jwt({ token, user }: { token: any, user: any }) {
-      if (user) {
-        token.sub = user.id
-        token.role = (user as any).role
+    async jwt({ token, user }: { token: unknown, user: unknown }) {
+      if (user && typeof user === 'object' && 'id' in user && 'role' in user) {
+        const u = user as { id: string; role: string }
+        const t = token as { sub?: string; role?: string }
+        t.sub = u.id
+        t.role = u.role
       }
       return token
     },
-    async session({ session, token }: { session: any, token: any }) {
-      if (session.user && token.sub) {
-        session.user.id = token.sub
-        session.user.role = token.role as 'admin' | 'employee' | 'client'
+    async session({ session, token }: { session: unknown, token: unknown }) {
+      if (session && typeof session === 'object' && 'user' in session && token && typeof token === 'object' && 'sub' in token && 'role' in token) {
+        const s = session as { user: { id?: string; role?: string } }
+        const t = token as { sub: string; role: string }
+        s.user.id = t.sub
+        s.user.role = t.role as 'admin' | 'employee' | 'client'
       }
       return session
     },
