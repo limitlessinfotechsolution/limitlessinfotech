@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  limitless-webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000" # Map container port 3000 to host port 3000
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000 # Or your production URL
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - JWT_SECRET=${JWT_SECRET} # Example: for authentication
+      - RESEND_API_KEY=${RESEND_API_KEY} # Example: for email sending
+      - BLOB_READ_WRITE_TOKEN=${BLOB_READ_WRITE_TOKEN} # Example: for Vercel Blob uploads
+    volumes:
+      - ./public:/app/public:ro # Read-only mount for static assets
+    restart: unless-stopped # Always restart unless explicitly stopped
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=limitless_db
+      - POSTGRES_USER=limitless_user
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/database-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./scripts/seed-data.sql:/docker-entrypoint-initdb.d/02-seed.sql
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deployment/nginx-production.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - ./public:/var/www/limitless-webapp/public:ro
+      - ./.next/static:/var/www/limitless-webapp/.next/static:ro
+    depends_on:
+      - limitless-webapp # Ensure Next.js app starts before Nginx
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  node_modules: # Example volume for node_modules cache
