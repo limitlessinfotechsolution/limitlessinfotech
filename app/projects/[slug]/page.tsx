@@ -86,7 +86,7 @@ const projects: Project[] = [
     description: "Created an interactive online learning portal for students and educators.",
     longDescription: [
       "Designed and developed a comprehensive educational portal that serves as a central hub for learning resources, course management, and interactive assignments. The platform supports various content formats, including videos, quizzes, and downloadable materials.",
-      "Key features include user authentication for different roles (students, teachers, admins), progress tracking, discussion forums, and a robust content management system. The goal was to create an engaging and accessible learning environment.",
+      "Key functionalities include user authentication for different roles (students, teachers, admins), progress tracking, discussion forums, and a robust content management system. The goal was to create an engaging and accessible learning environment.",
     ],
     imageUrl: "/images/projects/education.jpg",
     technologies: ["Vue.js", "Firebase", "Python (Django)", "WebSockets"],
@@ -194,8 +194,9 @@ const projects: Project[] = [
   },
 ]
 
-export default function ProjectDetailPage({ params }: { params: { slug: string } }) {
-  const project = projects.find((p) => p.slug === params.slug)
+export default async function ProjectDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const project = projects.find((p) => p.slug === slug)
 
   if (!project) {
     notFound()
@@ -297,9 +298,7 @@ export default function ProjectDetailPage({ params }: { params: { slug: string }
           </Card>
 
           <Card className="custom-card p-8 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-2xl font-bold text-foreground">Key Features</CardTitle>
-            </CardHeader>
+            <CardTitle className="text-2xl font-bold text-foreground">Key Features</CardTitle>
             <CardContent>
               <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-muted-foreground">
                 {project.features.map((feature, index) => (
