@@ -760,4 +760,3 @@ print(result)`,
       </div>
     </div>
   )
-}
