@@ -34,7 +34,7 @@ const apiEndpoints: APIEndpoint[] = [
     response: "{ success: boolean, message: string, adminEmailId?: string, clientEmailId?: string }",
     example: `{
   "firstName": "John",
-  "lastName": "Doe", 
+  "lastName": "Doe",
   "email": "john@example.com",
   "subject": "Project Inquiry",
   "message": "I'm interested in your web development services."
@@ -102,10 +102,10 @@ export default function APIDocsPage() {
     try {
       await navigator.clipboard.writeText(text)
       setCopiedCode(id)
-      toast({ title: "Copied!", description: "Code copied to clipboard" })
+      toast({ id: `copy-success-${id}`, title: "Copied!", description: "Code copied to clipboard" })
       setTimeout(() => setCopiedCode(null), 2000)
     } catch (error) {
-      toast({ title: "Error", description: "Failed to copy to clipboard", variant: "destructive" })
+      toast({ id: `copy-error-${id}`, title: "Error", description: "Failed to copy to clipboard", variant: "destructive" })
     }
   }
 
@@ -355,6 +355,12 @@ Content-Type: application/json
 {
   "email": "your-email@example.com",
   "password": "your-password"
+}
+
+Response:
+{
+  "success": true,
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }`,
                           "auth-example",
                         )
@@ -432,7 +438,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`,
     });
 
     const data = await response.json();
-    
+
     if (data.success) {
       console.log('Form submitted successfully!');
       return data;
@@ -461,7 +467,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`,
     });
 
     const data = await response.json();
-    
+
     if (data.success) {
       console.log('Form submitted successfully!');
       return data;
